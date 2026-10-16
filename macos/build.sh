@@ -15,6 +15,7 @@ PY="$PWD/.venv-mac/bin/python"
  --hidden-import engineio.async_drivers.threading \
  --add-data 'modules/web_viewer/templates:modules/web_viewer/templates' \
  --add-data 'modules/web_viewer/static:modules/web_viewer/static' \
+ --add-data 'modules:modules' --add-data 'config.ini.example:.' --add-data 'local:local' \
  --add-data 'translations:translations' --add-data 'data:data' macos/entry.py
 APP="$PWD/dist/MeshCore Bot.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/bot"
@@ -33,6 +34,26 @@ grep -q x86_64 dist/architecture.txt
 "$APP/Contents/Resources/bot/meshcore-bot-cli" --desktop-self-test | tee dist/self-test.txt
 "$APP/Contents/Resources/bot/meshcore-bot-cli" --validate-config --config config.ini.quickstart
 "$PY" macos/smoke.py "$APP/Contents/Resources/bot/meshcore-bot-cli" | tee dist/dashboard-test.txt
+"$PY" - "$APP" <<'PYTEST'
+import subprocess, sys, time
+from pathlib import Path
+app = Path(sys.argv[1])
+process = subprocess.Popen([str(app / 'Contents/MacOS/MeshCoreDesktop')])
+try:
+    time.sleep(4)
+    assert process.poll() is None, 'Native app exited during launch'
+    config = Path.home() / 'Library/Application Support/MeshCore Bot/config.ini'
+    assert config.is_file(), 'Native app did not create configuration'
+    import configparser
+    cfg = configparser.ConfigParser(interpolation=None)
+    cfg.read(config)
+    assert cfg.getboolean('Web_Viewer', 'enabled')
+    assert cfg.getboolean('Web_Viewer', 'auto_start')
+    print('Native GUI launch and first-run configuration passed')
+finally:
+    process.terminate()
+    process.wait(timeout=10)
+PYTEST
 mkdir -p dist/dmg-stage
 cp -R "$APP" dist/dmg-stage/
 ln -s /Applications dist/dmg-stage/Applications

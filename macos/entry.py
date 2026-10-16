@@ -7,6 +7,11 @@ if __name__ == '__main__':
         from cryptography.hazmat.backends.openssl.backend import backend
         import ssl, sqlite3, serial, bleak, meshcore, meshcore_cli
         from modules.web_viewer.app import BotDataViewer
+        from pathlib import Path
+        import modules
+        root = Path(modules.__file__).parent
+        assert (root / 'commands/ping_command.py').is_file(), 'Missing command discovery resources'
+        assert list((root / 'service_plugins').glob('*.py')), 'Missing service discovery resources'
         key = AESGCM.generate_key(bit_length=128)
         cipher = AESGCM(key)
         nonce = bytes(12)
