@@ -22,6 +22,15 @@ if __name__ == '__main__':
         from modules.web_viewer.app import main
         main()
     else:
-        import asyncio
+        # Runtime data paths are relative to the writable bot working directory.
+        # Seed missing directories without replacing the user's custom files.
+        if getattr(sys, 'frozen', False):
+            import shutil
+            from pathlib import Path
+            bundled = Path(sys._MEIPASS)
+            for name in ('translations', 'data'):
+                source, destination = bundled / name, Path.cwd() / name
+                if source.is_dir() and not destination.exists():
+                    shutil.copytree(source, destination)
         from meshcore_bot import main
         main()
