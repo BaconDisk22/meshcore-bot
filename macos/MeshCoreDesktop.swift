@@ -25,6 +25,8 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if let running = process, running.isRunning {
             running.terminate()
@@ -44,7 +46,7 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
                 if let start = contents.range(of: "[Web_Viewer]"),
                    let end = contents[start.upperBound...].range(of: "\n[") {
                     let range = start.lowerBound..<end.lowerBound
-                    let viewer = String(contents[range]).replacingOccurrences(of: "enabled = false", with: "enabled = true").replacingOccurrences(of: "auto_start = false", with: "auto_start = true")
+                    let viewer = String(contents[range]).replacingOccurrences(of: "\nenabled = false", with: "\nenabled = true").replacingOccurrences(of: "auto_start = false", with: "auto_start = true")
                     contents.replaceSubrange(range, with: viewer)
                 }
                 contents = contents.replacingOccurrences(of: "serial_port = /dev/ttyUSB0", with: "serial_port = /dev/cu.usbmodemREPLACE_ME")
