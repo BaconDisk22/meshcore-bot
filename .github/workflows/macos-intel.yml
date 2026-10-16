@@ -1,0 +1,30 @@
+name: Intel Mac App
+on:
+  push:
+    branches: [codex/intel-mac-app]
+  pull_request:
+    paths: ['macos/**', '.github/workflows/macos-intel.yml', 'modules/web_viewer/integration.py']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15-intel
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - run: bash macos/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MeshCore-Bot-Intel
+          path: |
+            dist/MeshCore-Bot-Intel.dmg
+            dist/SHA256SUMS.txt
+            dist/dashboard-test.txt
+            dist/self-test.txt
+            dist/architecture.txt
+            macos-build-requirements.txt
