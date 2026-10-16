@@ -24,6 +24,7 @@ jobs:
           path: |
             dist/MeshCore-Bot-Intel.dmg
             dist/SHA256SUMS.txt
+            dist/dashboard-test.txt
             dist/self-test.txt
             dist/architecture.txt
             macos-build-requirements.txt

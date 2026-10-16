@@ -41,7 +41,12 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
                 var contents = try String(contentsOf: example, encoding: .utf8)
                 // Bind the dashboard to loopback; never expose an unauthenticated dashboard on LAN.
                 contents = contents.replacingOccurrences(of: "host = 0.0.0.0", with: "host = 127.0.0.1")
-                contents = contents.replacingOccurrences(of: "auto_start = false", with: "auto_start = true")
+                if let start = contents.range(of: "[Web_Viewer]"),
+                   let end = contents[start.upperBound...].range(of: "\n[") {
+                    let range = start.lowerBound..<end.lowerBound
+                    let viewer = String(contents[range]).replacingOccurrences(of: "enabled = false", with: "enabled = true").replacingOccurrences(of: "auto_start = false", with: "auto_start = true")
+                    contents.replaceSubrange(range, with: viewer)
+                }
                 contents = contents.replacingOccurrences(of: "serial_port = /dev/ttyUSB0", with: "serial_port = /dev/cu.usbmodemREPLACE_ME")
                 try contents.write(to: config, atomically: true, encoding: .utf8)
             }

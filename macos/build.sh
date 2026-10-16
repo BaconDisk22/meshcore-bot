@@ -32,6 +32,7 @@ file "$APP/Contents/MacOS/MeshCoreDesktop" | tee dist/architecture.txt
 grep -q x86_64 dist/architecture.txt
 "$APP/Contents/Resources/bot/meshcore-bot-cli" --desktop-self-test | tee dist/self-test.txt
 "$APP/Contents/Resources/bot/meshcore-bot-cli" --validate-config --config config.ini.quickstart
+"$PY" macos/smoke.py "$APP/Contents/Resources/bot/meshcore-bot-cli" | tee dist/dashboard-test.txt
 mkdir -p dist/dmg-stage
 cp -R "$APP" dist/dmg-stage/
 ln -s /Applications dist/dmg-stage/Applications
