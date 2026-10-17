@@ -1,0 +1,27 @@
+MESHCORE BOT — INTEL MAC LOCAL BUILDER (TEST VERSION)
+
+This builds the full Python bot from the public BaconDisk22/meshcore-bot source
+and wraps it in a double-clickable macOS app. No GitHub login is needed.
+
+Requirements:
+- Intel Mac, macOS 11 or newer
+- Internet connection (downloads source and Python packages)
+- Apple Command Line Tools: xcode-select --install
+- Python 3.11 installed on the Mac (python.org)
+
+Steps:
+1. Unzip this package on the Intel Mac.
+2. Double-click build-on-intel-mac.command.
+   If macOS blocks this script, inspect it before running; it downloads
+   public code and installs Python dependencies. Finder may offer Open Anyway.
+3. Wait while it downloads, installs dependencies, and builds the app.
+4. Find "MeshCore Bot.app" on your Desktop and open it.
+5. Click Edit Config to configure connection_type=serial or connection_type=ble.
+   USB on a Mac usually uses a /dev/cu.* device path.
+6. Click Start Bot. Inspect the logs and use Open Dashboard if configured.
+
+This is NOT a prebuilt .dmg and has NOT been tested on an Intel Mac or radio.
+The Python dependency install or PyInstaller build may need adjustments.
+Bluetooth permissions may require additional platform work.
+Do not use this package if you are uncomfortable running a local build script.
+It keeps settings in ~/Library/Application Support/MeshCore Bot/config.ini.
