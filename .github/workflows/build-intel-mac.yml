@@ -2,20 +2,19 @@ name: Build Intel Mac Desktop App
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
   push:
-    branches: [feature/intel-mac-desktop]
-    paths:
-      - 'macos/**'
-      - '.github/workflows/build-intel-mac.yml'
-      - 'meshcore_bot.py'
-      - 'modules/**'
-      - 'requirements.txt'
+    branches: [main, feature/halloween-intel-mac, feature/intel-mac-desktop]
+    tags: ['mac-v*']
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    runs-on: macos-15-intel
-    permissions:
-      contents: read
+    runs-on: macos-26-intel
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -23,52 +22,34 @@ jobs:
           python-version: '3.11'
           architecture: 'x64'
       - name: Install runtime and packager
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt pyinstaller
-      - name: Build bundled bot CLI
-        run: |
-          pyinstaller --noconfirm --clean --onedir --name meshcore-bot-cli \
-            --collect-submodules modules \
-            --collect-all meshcore \
-            --collect-all meshcore_cli \
-            --add-data 'modules/web_viewer/templates:modules/web_viewer/templates' \
-            --add-data 'modules/web_viewer/static:modules/web_viewer/static' \
-            --add-data 'translations:translations' \
-            --add-data 'data:data' \
-            meshcore_bot.py
-      - name: Assemble Intel macOS application
-        run: |
-          set -euo pipefail
-          APP='output/MeshCore Bot.app'
-          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/bot"
-          cp -R dist/meshcore-bot-cli/. "$APP/Contents/Resources/bot/"
-          cp config.ini.example "$APP/Contents/Resources/config.ini.example"
-          swiftc -O -target x86_64-apple-macos11.0 -framework AppKit \
-            macos/MeshCoreDesktop.swift -o "$APP/Contents/MacOS/MeshCoreDesktop"
-          cat > "$APP/Contents/Info.plist" <<'PLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0"><dict>
-            <key>CFBundleExecutable</key><string>MeshCoreDesktop</string>
-            <key>CFBundleIdentifier</key><string>com.bacondisk22.meshcorebot</string>
-            <key>CFBundleName</key><string>MeshCore Bot</string>
-            <key>CFBundleDisplayName</key><string>MeshCore Bot</string>
-            <key>CFBundlePackageType</key><string>APPL</string>
-            <key>CFBundleShortVersionString</key><string>0.1.0</string>
-            <key>CFBundleVersion</key><string>1</string>
-            <key>LSMinimumSystemVersion</key><string>11.0</string>
-            <key>NSBluetoothAlwaysUsageDescription</key><string>Connect to your MeshCore radio over Bluetooth.</string>
-            <key>NSBluetoothPeripheralUsageDescription</key><string>Connect to your MeshCore radio over Bluetooth.</string>
-          </dict></plist>
-          PLIST
-          chmod +x "$APP/Contents/MacOS/MeshCoreDesktop" "$APP/Contents/Resources/bot/meshcore-bot-cli"
-          codesign --force --deep --sign - "$APP"
-          hdiutil create -volname 'MeshCore Bot' -srcfolder "$APP" -ov -format UDZO 'MeshCore-Bot-Intel-Mac.dmg'
-      - name: Upload DMG and app
+        run: python -m pip install --prefer-binary -r requirements.txt 'pyinstaller>=6,<7' pytest pytest-asyncio pytest-mock pytest-cov pytest-timeout
+      - name: Test configuration, plugins and desktop packaging
+        run: python -m pytest tests/test_config_validation.py tests/test_plugin_loader.py tests/test_macos_packaging.py --no-cov
+      - name: Build and verify Intel macOS application
+        run: bash macos/build-app.sh
+      - name: Upload downloadable app and DMG
         uses: actions/upload-artifact@v4
         with:
           name: MeshCore-Bot-Intel-Mac
           path: |
-            MeshCore-Bot-Intel-Mac.dmg
+            output/MeshCore-Bot-Intel-Mac.dmg
+            output/MeshCore-Bot-Intel-Mac.zip
+            output/SHA256SUMS.txt
           if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/mac-v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: MeshCore-Bot-Intel-Mac
+          path: output
+      - name: Attach packages to a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$GITHUB_REF_NAME" output/MeshCore-Bot-Intel-Mac.dmg output/MeshCore-Bot-Intel-Mac.zip output/SHA256SUMS.txt --draft --title "MeshCore Bot $GITHUB_REF_NAME (Intel Mac)" --notes 'Intel macOS application. Ad-hoc signed, not notarized. Verify radio and dashboard operation before publishing.'
