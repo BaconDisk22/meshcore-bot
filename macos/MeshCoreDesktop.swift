@@ -2,6 +2,9 @@ import AppKit
 import Foundation
 
 final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
+    private let pumpkin = NSColor(srgbRed: 1, green: 0.55, blue: 0.20, alpha: 1)
+    private let purple = NSColor(srgbRed: 0.73, green: 0.55, blue: 0.96, alpha: 1)
+    private let ink = NSColor(srgbRed: 0.055, green: 0.045, blue: 0.075, alpha: 1)
     private var window: NSWindow!
     private var status: NSTextField!
     private var output: NSTextView!
@@ -29,9 +32,29 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         return .terminateNow
     }
 
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        true
+    }
+
     private func createConfigIfNeeded() {
         do {
             try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
+            // Seed relative-path resources without replacing user-customized files.
+            for directory in ["translations", "data"] {
+                if let source = Bundle.main.resourceURL?.appendingPathComponent("bot/_internal/" + directory),
+                   let files = FileManager.default.enumerator(at: source, includingPropertiesForKeys: [.isDirectoryKey]) {
+                    for case let file as URL in files {
+                        let relative = String(file.path.dropFirst(source.path.count + 1))
+                        let destination = home.appendingPathComponent(directory).appendingPathComponent(relative)
+                        if try file.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true {
+                            try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+                        } else if !FileManager.default.fileExists(atPath: destination.path) {
+                            try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+                            try FileManager.default.copyItem(at: file, to: destination)
+                        }
+                    }
+                }
+            }
             guard !FileManager.default.fileExists(atPath: config.path) else { return }
             if let example = Bundle.main.resourceURL?.appendingPathComponent("config.ini.example"),
                FileManager.default.fileExists(atPath: example.path) {
@@ -49,6 +72,8 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         let button = NSButton(title: title, target: self, action: selector)
         button.frame = NSRect(x: x, y: 490, width: width, height: 33)
         button.bezelStyle = .rounded
+        button.contentTintColor = title == "Start Bot" ? pumpkin : purple
+        button.autoresizingMask = [.minYMargin]
         return button
     }
 
@@ -56,21 +81,26 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 560),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
                           backing: .buffered, defer: false)
-        window.title = "MeshCore Bot • Intel Mac"
+        window.title = "MeshCore Bot • Halloween Edition"
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.backgroundColor = ink
         window.center()
         window.minSize = NSSize(width: 760, height: 560)
         let root = NSView(frame: NSRect(x: 0, y: 0, width: 760, height: 560))
         root.autoresizingMask = [.width, .height]
         window.contentView = root
 
-        let heading = NSTextField(labelWithString: "MeshCore Bot")
+        let heading = NSTextField(labelWithString: "MeshCore • After Dark")
         heading.font = NSFont.boldSystemFont(ofSize: 24)
+        heading.textColor = pumpkin
+        heading.autoresizingMask = [.minYMargin]
         heading.frame = NSRect(x: 22, y: 523, width: 300, height: 30)
         root.addSubview(heading)
 
         status = NSTextField(labelWithString: "Stopped • Configure your radio, then click Start Bot")
         status.frame = NSRect(x: 22, y: 460, width: 700, height: 24)
-        status.autoresizingMask = [.width]
+        status.autoresizingMask = [.width, .minYMargin]
+        status.textColor = purple
         root.addSubview(status)
 
         root.addSubview(makeButton("Start Bot", #selector(startBot), x: 20, width: 116))
@@ -85,6 +115,9 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         scroll.borderType = .bezelBorder
         output = NSTextView(frame: scroll.bounds)
         output.isEditable = false
+        output.backgroundColor = ink
+        output.textColor = NSColor(srgbRed: 0.91, green: 0.88, blue: 0.95, alpha: 1)
+        output.insertionPointColor = pumpkin
         output.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
         output.string = "Ready. Settings and database files live in:\n\(home.path)\n\n"
         scroll.documentView = output
@@ -94,7 +127,7 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
 
     private func appendLog(_ s: String) {
         DispatchQueue.main.async {
-            self.output.textStorage?.append(NSAttributedString(string: s))
+            self.output.textStorage?.append(NSAttributedString(string: s, attributes: [.foregroundColor: self.output.textColor ?? NSColor.white, .font: self.output.font ?? NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)]))
             self.output.scrollToEndOfDocument(nil)
         }
     }
@@ -110,7 +143,7 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
     }
 
     @objc private func startBot() {
-        guard process?.isRunning != true else { return }
+        guard process == nil else { return }
         guard FileManager.default.isExecutableFile(atPath: botExecutable.path) else {
             showError("Bundled bot executable is missing. Rebuild the macOS package.")
             return
@@ -145,6 +178,8 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             status.stringValue = "Running locally • PID \(p.processIdentifier)"
             appendLog("\n--- Starting MeshCore Bot ---\n")
         } catch {
+            pipe.fileHandleForReading.readabilityHandler = nil
+            logPipe = nil
             showError("Failed to start bot: \(error.localizedDescription)")
         }
     }

@@ -41,48 +41,17 @@ fi
 cd "$PROJECT"
 "$PYTHON" -m venv "$WORK/venv"
 "$WORK/venv/bin/python" -m pip install --upgrade pip
-"$WORK/venv/bin/python" -m pip install -r requirements.txt 'pyinstaller>=6,<7'
+"$WORK/venv/bin/python" -m pip install --prefer-binary -r requirements.txt 'pyinstaller>=6,<7'
 
-ARGS=(--noconfirm --clean --onedir --name meshcore-bot-cli \
-  --collect-submodules modules --collect-all meshcore --collect-all meshcore_cli)
-for spec in 'modules/web_viewer/templates:modules/web_viewer/templates' \
-            'modules/web_viewer/static:modules/web_viewer/static' \
-            'translations:translations' 'data:data'; do
-  source="${spec%%:*}"
-  if [[ -e "$source" ]]; then ARGS+=(--add-data "$spec"); fi
-done
-"$WORK/venv/bin/pyinstaller" "${ARGS[@]}" meshcore_bot.py
-
+# Use the same packaging and verification path as GitHub Actions.
+PYTHON="$WORK/venv/bin/python" bash macos/build-app.sh
 if [[ -e "$OUT" ]]; then
   BACKUP="$HOME/Desktop/MeshCore Bot backup $(date +%Y%m%d-%H%M%S).app"
   mv "$OUT" "$BACKUP"
   echo "Existing app moved to: $BACKUP"
 fi
-mkdir -p "$OUT/Contents/MacOS" "$OUT/Contents/Resources/bot"
-cp -R dist/meshcore-bot-cli/. "$OUT/Contents/Resources/bot/"
-cp config.ini.example "$OUT/Contents/Resources/config.ini.example"
-swiftc -O -target x86_64-apple-macos11.0 -framework AppKit \
-  "$ROOT/macos/MeshCoreDesktop.swift" -o "$OUT/Contents/MacOS/MeshCoreDesktop"
-cat > "$OUT/Contents/Info.plist" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-<key>CFBundleExecutable</key><string>MeshCoreDesktop</string>
-<key>CFBundleIdentifier</key><string>com.bacondisk22.meshcorebot</string>
-<key>CFBundleName</key><string>MeshCore Bot</string>
-<key>CFBundleDisplayName</key><string>MeshCore Bot</string>
-<key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.1.0</string>
-<key>CFBundleVersion</key><string>1</string>
-<key>LSMinimumSystemVersion</key><string>11.0</string>
-<key>NSBluetoothAlwaysUsageDescription</key><string>Connect to your MeshCore radio over Bluetooth.</string>
-<key>NSBluetoothPeripheralUsageDescription</key><string>Connect to your MeshCore radio over Bluetooth.</string>
-</dict></plist>
-PLIST
-chmod +x "$OUT/Contents/MacOS/MeshCoreDesktop" "$OUT/Contents/Resources/bot/meshcore-bot-cli"
-codesign --force --deep --sign - "$OUT"
-echo
+cp -R 'output/MeshCore Bot.app' "$OUT"
 echo "App created: $OUT"
-echo 'This is an unsigned/not-notarized local prototype. Radio operation is not yet tested.'
+echo 'Ad-hoc signed; not Apple notarized. Radio operation needs device testing.'
 open -R "$OUT"
 read -r -p 'Press Return to close...' _ || true

@@ -13,8 +13,7 @@
     <script nonce="{{ g.csp_nonce }}">
         (function () {
             const storedTheme = localStorage.getItem('theme');
-            const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            const theme = storedTheme || systemPreference;
+            const theme = storedTheme || 'dark';
             document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
@@ -400,6 +399,7 @@
         }
     </style>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/halloween.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -867,7 +867,7 @@
         // Dark Mode Management
         class DarkModeManager {
             constructor() {
-                this.theme = this.getStoredTheme() || this.getSystemPreference();
+                this.theme = this.getStoredTheme() || 'dark';
                 this.applyTheme();
                 this.setupToggle();
             }
@@ -922,7 +922,7 @@
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                     // Only apply system preference if user hasn't set a preference
                     if (!this.getStoredTheme()) {
-                        this.setTheme(e.matches ? 'dark' : 'light');
+                        this.applyTheme();
                     }
                 });
             }
