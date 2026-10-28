@@ -35,6 +35,11 @@ def packaging_smoke():
 if __name__ == '__main__':
     if sys.argv[1:] == ['--packaging-smoke']:
         packaging_smoke()
+    elif '--desktop-viewer' in sys.argv[1:]:
+        from modules.web_viewer.app import main as viewer_main
+
+        sys.argv.remove('--desktop-viewer')
+        viewer_main()
     else:
         from meshcore_bot import main
         main()
