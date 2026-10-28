@@ -1072,6 +1072,9 @@ class WebViewerIntegration:
                 "--port", str(self.port)
             ]
 
+            if getattr(sys, "frozen", False):
+                cmd = [sys.executable, "--desktop-viewer", *cmd[2:]]
+
             if self.debug:
                 cmd.append("--debug")
 
