@@ -14,10 +14,10 @@ The app is **ad-hoc signed, not Apple Developer ID signed or notarized**. macOS 
 
 1. Open the app and click **Edit Config**. Settings remain at `~/Library/Application Support/MeshCore Bot/config.ini`. Updating the app never replaces this file. Back up this whole folder before migrating an existing installation; copy your config and databases there while the bot is stopped.
 2. In `[Connection]`, configure your radio. For serial, use its actual `/dev/cu.usbserial-…` or `/dev/cu.usbmodem…` device path. BLE and TCP use the existing upstream settings.
-3. For the dashboard, set `[Web_Viewer]` to `enabled = true`, `host = 127.0.0.1`, `port = 8080`. The **Open Dashboard** button opens that fixed local address; if you configure a different port, open it manually in your browser.
+3. New installs enable the dashboard on `127.0.0.1:8080` and start it with the bot (`[Web_Viewer]` `enabled = true`, `auto_start = true`). Configs created by older builds keep those settings off; set both to `true` to use the dashboard. **Open Dashboard** reads the host and port from `[Web_Viewer]` and works only while the bot is running. If the radio can't connect, the bot stops and the dashboard stops with it.
 4. Click **Start Bot**, inspect the logs, and open the dashboard. **Stop Bot**, quitting, or closing the last window requests bot shutdown. Do not run another service against the same radio simultaneously.
 
-First launch copies the example configuration with a loopback-only viewer address. It does not start the bot automatically. Existing configuration, credentials, plugins and bot behavior are preserved; optional Python plugin dependencies must be included when building a custom app.
+First launch copies the example configuration with a loopback-only dashboard that starts with the bot. It does not start the bot automatically. Existing configuration, credentials, plugins and bot behavior are preserved; optional Python plugin dependencies must be included when building a custom app.
 
 ## Build this checkout
 
