@@ -11,11 +11,11 @@ def packaging_smoke():
     import configparser
     import logging
     from types import SimpleNamespace
+    import engineio.async_drivers.threading  # noqa: F401
+    import modules
     import modules.core  # noqa: F401 -- verify transitive runtime dependencies
     import modules.web_viewer.app  # noqa: F401
-    import engineio.async_drivers.threading  # noqa: F401
     from modules.plugin_loader import PluginLoader
-    import modules
 
     root = Path(modules.__file__).resolve().parent
     loader = PluginLoader(SimpleNamespace(config=configparser.ConfigParser(), logger=logging.getLogger('smoke')))
