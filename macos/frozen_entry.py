@@ -11,6 +11,7 @@ def packaging_smoke():
     import configparser
     import logging
     from types import SimpleNamespace
+
     import engineio.async_drivers.threading  # noqa: F401
     import modules
     import modules.core  # noqa: F401 -- verify transitive runtime dependencies
