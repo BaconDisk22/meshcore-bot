@@ -39,8 +39,8 @@ PLIST
 chmod +x "$APP/Contents/MacOS/MeshCoreDesktop" "$APP/Contents/Resources/bot/meshcore-bot-cli"
 codesign --force --deep --sign - "$APP"
 codesign --verify --deep --strict "$APP"
-lipo -verify_arch x86_64 "$APP/Contents/MacOS/MeshCoreDesktop"
-lipo -verify_arch x86_64 "$APP/Contents/Resources/bot/meshcore-bot-cli"
+lipo "$APP/Contents/MacOS/MeshCoreDesktop" -verify_arch x86_64
+lipo "$APP/Contents/Resources/bot/meshcore-bot-cli" -verify_arch x86_64
 "$APP/Contents/Resources/bot/meshcore-bot-cli" --help
 "$APP/Contents/Resources/bot/meshcore-bot-cli" --packaging-smoke
 # ditto preserves executable permissions and bundle symlinks in the downloadable ZIP.
