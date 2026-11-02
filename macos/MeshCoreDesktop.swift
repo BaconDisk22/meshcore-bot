@@ -61,6 +61,11 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
                 var contents = try String(contentsOf: example, encoding: .utf8)
                 // Bind the dashboard to loopback; never expose an unauthenticated dashboard on LAN.
                 contents = contents.replacingOccurrences(of: "host = 0.0.0.0", with: "host = 127.0.0.1")
+                // Start the loopback dashboard with the bot so Open Dashboard works out of the box.
+                contents = Self.editingSection("Web_Viewer", in: contents) { section in
+                    section.replacingOccurrences(of: "\nenabled = false", with: "\nenabled = true")
+                        .replacingOccurrences(of: "\nauto_start = false", with: "\nauto_start = true")
+                }
                 try contents.write(to: config, atomically: true, encoding: .utf8)
             }
         } catch {
@@ -200,8 +205,37 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openDashboard() {
-        // The dashboard must be enabled in the bot configuration first.
-        NSWorkspace.shared.open(URL(string: "http://127.0.0.1:8080")!)
+        guard let p = process, p.isRunning else {
+            showError("The dashboard starts with the bot. Click Start Bot first; if the radio can't connect, the bot and dashboard stop — check the log.")
+            return
+        }
+        let contents = (try? String(contentsOf: config, encoding: .utf8)) ?? ""
+        var section = ""
+        _ = Self.editingSection("Web_Viewer", in: contents) { section = $0; return $0 }
+        func value(_ key: String) -> String? {
+            for line in section.split(separator: "\n") {
+                let parts = line.split(separator: "=", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+                if parts.count == 2, parts[0] == key { return parts[1] }
+            }
+            return nil
+        }
+        if value("enabled")?.lowercased() != "true" {
+            showError("The dashboard is disabled. Click Edit Config and set enabled = true and auto_start = true under [Web_Viewer], then restart the bot.")
+            return
+        }
+        var host = value("host") ?? "127.0.0.1"
+        if host == "0.0.0.0" { host = "127.0.0.1" }
+        let port = Int(value("port") ?? "") ?? 8080
+        NSWorkspace.shared.open(URL(string: "http://\(host):\(port)")!)
+    }
+
+    /// Applies `transform` to the body of `[name]` in an INI string, up to the next section header.
+    private static func editingSection(_ name: String, in contents: String, _ transform: (String) -> String) -> String {
+        guard let header = contents.range(of: "\n[\(name)]") else { return contents }
+        let end = contents.range(of: "\n[", range: header.upperBound..<contents.endIndex)?.lowerBound ?? contents.endIndex
+        var result = contents
+        result.replaceSubrange(header.upperBound..<end, with: transform(String(contents[header.upperBound..<end])))
+        return result
     }
 }
 
