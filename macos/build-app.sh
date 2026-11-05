@@ -50,3 +50,4 @@ cp -R "$APP" output/dmg/
 ln -s /Applications output/dmg/Applications
 hdiutil create -volname 'MeshCore Bot' -srcfolder output/dmg -ov -format UDZO output/MeshCore-Bot-Intel-Mac.dmg
 (cd output && shasum -a 256 MeshCore-Bot-Intel-Mac.zip MeshCore-Bot-Intel-Mac.dmg > SHA256SUMS.txt)
+(cd output && shasum -a 256 -c SHA256SUMS.txt)
