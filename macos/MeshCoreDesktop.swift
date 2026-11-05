@@ -267,7 +267,14 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
 
     /// Applies `transform` to the body of `[name]` in an INI string, up to the next section header.
     private static func editingSection(_ name: String, in contents: String, _ transform: (String) -> String) -> String {
-        guard let header = contents.range(of: "\n[\(name)]") else { return contents }
+        let marker = "[\(name)]"
+        let header: Range<String.Index>?
+        if contents.hasPrefix(marker) {
+            header = contents.startIndex..<contents.index(contents.startIndex, offsetBy: marker.count)
+        } else {
+            header = contents.range(of: "\n" + marker)
+        }
+        guard let header else { return contents }
         let end = contents.range(of: "\n[", range: header.upperBound..<contents.endIndex)?.lowerBound ?? contents.endIndex
         var result = contents
         result.replaceSubrange(header.upperBound..<end, with: transform(String(contents[header.upperBound..<end])))
