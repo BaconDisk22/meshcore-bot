@@ -26,9 +26,14 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // Never block the UI thread waiting for a bot or pipe reader to exit.
+        logPipe?.fileHandleForReading.readabilityHandler = nil
         if let running = process, running.isRunning {
+            running.terminationHandler = nil
             running.terminate()
         }
+        process = nil
+        logPipe = nil
         return .terminateNow
     }
 
@@ -299,22 +304,41 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
     }
 
     @objc private func editConfig() {
-        guard FileManager.default.fileExists(atPath: config.path) else {
-            showError("Configuration file is missing. Check the Bot Folder.")
+        let contents: String
+        do {
+            contents = try String(contentsOf: config, encoding: .utf8)
+        } catch {
+            showError("Cannot read config.ini: \(error.localizedDescription)")
             return
         }
-        // INI files may not have a default macOS application association.
-        // Launch TextEdit explicitly so Edit Config works on a fresh Mac.
-        let textEdit = URL(fileURLWithPath: "/System/Applications/TextEdit.app")
-        guard FileManager.default.fileExists(atPath: textEdit.path) else {
-            showError("TextEdit is unavailable. Open the Bot Folder and edit config.ini with a text editor.")
+        let alert = NSAlert()
+        alert.messageText = "Edit MeshCore Bot Configuration"
+        alert.informativeText = "Changes are saved to config.ini. Restart the bot to apply them."
+        alert.addButton(withTitle: "Save Changes")
+        alert.addButton(withTitle: "Cancel")
+        let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 650, height: 430))
+        scroll.hasVerticalScroller = true
+        scroll.hasHorizontalScroller = true
+        let editor = NSTextView(frame: scroll.bounds)
+        editor.isEditable = true
+        editor.isRichText = false
+        editor.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
+        editor.string = contents
+        editor.isHorizontallyResizable = false
+        editor.autoresizingMask = [.width]
+        scroll.documentView = editor
+        alert.accessoryView = scroll
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        let updated = editor.string
+        guard !updated.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            showError("Configuration cannot be empty. No changes were saved.")
             return
         }
-        let configuration = NSWorkspace.OpenConfiguration()
-        NSWorkspace.shared.open([config], withApplicationAt: textEdit, configuration: configuration) { [weak self] _, error in
-            if let error {
-                self?.showError("Could not open config.ini in TextEdit: \\(error.localizedDescription)")
-            }
+        do {
+            try updated.write(to: config, atomically: true, encoding: .utf8)
+            appendLog("Configuration saved. Restart the bot to apply changes.\\n")
+        } catch {
+            showError("Could not save config.ini: \(error.localizedDescription)")
         }
     }
 
