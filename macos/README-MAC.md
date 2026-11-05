@@ -1,6 +1,6 @@
-# MeshCore Bot — Halloween edition for Intel Mac
+# MeshCore Bot — Intel Mac Control Center
 
-The native Mac window uses black, pumpkin orange and purple. The web dashboard defaults to a matching dark palette with lime connection indicators. Existing saved light-mode preferences and the theme toggle still work.
+The native Intel Mac control center uses a dark graphite layout, readable status panel, quick actions and a live activity log. The web dashboard is a separate local interface; its theme settings are independent of the desktop window.
 
 ## Download and open
 
@@ -36,3 +36,13 @@ Outputs are `output/MeshCore Bot.app`, a DMG, an app ZIP and SHA-256 checksums. 
 PRs, pushes to main and the desktop feature branches, and manual dispatch build downloadable artifacts. Pushing a `mac-v*` tag creates a **draft** release with the DMG, ZIP and checksums; it does not publish or merge automatically.
 
 Before merging or publishing, verify on the target Intel Tahoe Mac: first launch, existing config retained after replacing the app, resize and log readability, Start/Stop/Start, quit/close shutdown, actual serial/BLE/TCP operation, and dashboard login and commands. Radio hardware checks cannot be established by the packaging smoke test. The dashboard retains upstream CDN dependencies for Bootstrap, icons and other libraries.
+
+## Intel Mac smoke test and troubleshooting
+
+1. Launch the downloaded app and confirm the Overview, status and Live Activity sections render without clipping.
+2. Click **Edit Config**. The built-in plain-text editor should appear. Use **Cancel** to discard changes, or **Save Changes** to write `config.ini` atomically. Restart the bot after saving.
+3. Confirm the app quits normally with the bot stopped. Then start the bot (with a valid MeshCore radio configuration), and confirm quitting while running does not hang.
+4. If the app cannot close, record whether the bot was running, capture the Activity Monitor process state and logs, and report the exact steps. A passing CI build cannot establish that a hardware-specific hang is fixed.
+5. The app is ad-hoc signed and not notarized. The radio send/receive and reconnect paths require a real MeshCore companion radio before a stable release.
+
+Existing configuration is stored under `~/Library/Application Support/MeshCore Bot/config.ini`. Back it up before extensive edits.
