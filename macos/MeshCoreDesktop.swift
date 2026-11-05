@@ -148,7 +148,10 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
     }
 
     @objc private func startBot() {
-        guard process == nil else { return }
+        guard process == nil else {
+            appendLog("Bot is already running or shutting down. Wait before starting again.\n")
+            return
+        }
         guard FileManager.default.isExecutableFile(atPath: botExecutable.path) else {
             showError("Bundled bot executable is missing. Rebuild the macOS package.")
             return
@@ -174,6 +177,7 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 self?.status.stringValue = "Stopped (exit code \(terminated.terminationStatus))"
                 self?.logPipe?.fileHandleForReading.readabilityHandler = nil
+                self?.logPipe = nil
                 self?.process = nil
             }
         }
@@ -185,6 +189,7 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         } catch {
             pipe.fileHandleForReading.readabilityHandler = nil
             logPipe = nil
+            process = nil
             showError("Failed to start bot: \(error.localizedDescription)")
         }
     }
