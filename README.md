@@ -10,6 +10,28 @@ A Python bot that connects to MeshCore mesh networks via serial port, BLE, or TC
 >
 > If you decide to run the bot on your mesh, please take advantage of regions or hop limits to ensure that your bot is helping your neighbors not flooding the entire mesh.
 
+## Intel Mac desktop app (x86_64)
+
+This fork includes a **click-to-open native macOS control center** for Intel Macs. It bundles the bot runtime and provides a dark graphite interface with status, live activity, and quick actions for **Start Bot**, **Stop Bot**, **Edit Config**, **Dashboard**, and **Bot Folder**. No separate Python installation is required for the packaged app.
+
+**Get the latest build:** [Build Intel Mac Desktop App — GitHub Actions](https://github.com/BaconDisk22/meshcore-bot/actions/workflows/build-intel-mac.yml). Open a successful run on `main`, download the `MeshCore-Bot-Intel-Mac` artifact, unzip it, open the DMG, and move **MeshCore Bot.app** to Applications. Artifacts expire after 14 days. See the [full Intel Mac setup guide](macos/README-MAC.md).
+
+**Configuration:** Click **Edit Config** for the built-in plain-text editor, then save and restart the bot. The app stores its local configuration under `~/Library/Application Support/MeshCore Bot/`. The **Dashboard** button opens the local web viewer once the bot and web viewer are running.
+
+**Security and testing:** The macOS build is ad-hoc signed, **not notarized**. If macOS blocks it, use System Settings → Privacy & Security → Open Anyway only after verifying the build source. Automated packaging and regression checks pass on CI, but actual radio communication and the previously reported editor/quit issues still require confirmation on an Intel Mac. **No stable release is claimed.**
+
+### Screenshots
+
+Real screenshots will be added after a successful Intel Mac smoke test. The project intentionally does not display generated mockups as verified application screenshots.
+
+| Screen | What it shows |
+| --- | --- |
+| Desktop overview | Connection status, controls, and live activity |
+| Built-in config editor | Editing and saving `config.ini` |
+| Local web dashboard | Browser-based monitoring and mesh activity |
+
+Maintainers: see [screenshot capture guide](docs/mac-screenshots.md) for how to capture and publish these images. Please hide radio identifiers, personal messages, credentials, and location data before committing screenshots.
+
 ## Features
 
 - **Connection Methods**: Serial port, BLE (Bluetooth Low Energy), or TCP/IP
