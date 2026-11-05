@@ -173,9 +173,11 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         logPipe = pipe
         pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
-            if !data.isEmpty, let s = String(data: data, encoding: .utf8) {
-                self?.appendLog(s)
-            }
+            guard !data.isEmpty else { return }
+            // Radio output may split UTF-8 code points between reads. Decode
+            // with replacement instead of silently dropping an entire chunk.
+            let decoded = String(decoding: data, as: UTF8.self)
+            self?.appendLog(decoded)
         }
         p.terminationHandler = { [weak self] terminated in
             DispatchQueue.main.async {
