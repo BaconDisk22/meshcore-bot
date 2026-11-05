@@ -152,6 +152,10 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             appendLog("Bot is already running or shutting down. Wait before starting again.\n")
             return
         }
+        guard FileManager.default.fileExists(atPath: config.path) else {
+            showError("Configuration is missing. Restore config.ini in the Bot Folder before starting.")
+            return
+        }
         guard FileManager.default.isExecutableFile(atPath: botExecutable.path) else {
             showError("Bundled bot executable is missing. Rebuild the macOS package.")
             return
@@ -202,6 +206,10 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
     }
 
     @objc private func editConfig() {
+        guard FileManager.default.fileExists(atPath: config.path) else {
+            showError("Configuration file is missing. Check the Bot Folder.")
+            return
+        }
         NSWorkspace.shared.open(config)
     }
 
