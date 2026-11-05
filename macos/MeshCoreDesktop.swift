@@ -335,6 +335,10 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             showError("Configuration cannot be empty. No changes were saved.")
             return
         }
+        guard updated.contains("[Connection]") && updated.contains("[Bot]") else {
+            showError("Configuration must include [Connection] and [Bot] sections. No changes saved.")
+            return
+        }
         do {
             try updated.write(to: config, atomically: true, encoding: .utf8)
             appendLog("Configuration saved. Restart the bot to apply changes.\\n")
