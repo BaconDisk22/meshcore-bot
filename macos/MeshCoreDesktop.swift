@@ -330,6 +330,7 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         alert.accessoryView = scroll
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         let updated = editor.string
+        guard updated != contents else { return }
         guard !updated.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             showError("Configuration cannot be empty. No changes were saved.")
             return
