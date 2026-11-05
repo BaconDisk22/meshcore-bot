@@ -219,7 +219,19 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             showError("Configuration file is missing. Check the Bot Folder.")
             return
         }
-        NSWorkspace.shared.open(config)
+        // INI files may not have a default macOS application association.
+        // Launch TextEdit explicitly so Edit Config works on a fresh Mac.
+        let textEdit = URL(fileURLWithPath: "/System/Applications/TextEdit.app")
+        guard FileManager.default.fileExists(atPath: textEdit.path) else {
+            showError("TextEdit is unavailable. Open the Bot Folder and edit config.ini with a text editor.")
+            return
+        }
+        let configuration = NSWorkspace.OpenConfiguration()
+        NSWorkspace.shared.open([config], withApplicationAt: textEdit, configuration: configuration) { [weak self] _, error in
+            if let error {
+                self?.showError("Could not open config.ini in TextEdit: \\(error.localizedDescription)")
+            }
+        }
     }
 
     @objc private func openFolder() {
