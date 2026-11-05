@@ -206,10 +206,12 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
     }
 
     @objc private func stopBot() {
-        if let p = process, p.isRunning {
-            p.terminate()
-            status.stringValue = "Stopping…"
+        guard let p = process, p.isRunning else {
+            appendLog("Bot is not running; nothing to stop.\n")
+            return
         }
+        p.terminate()
+        status.stringValue = "Stopping…"
     }
 
     @objc private func editConfig() {
