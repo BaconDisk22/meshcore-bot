@@ -224,14 +224,25 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             }
             return nil
         }
-        if value("enabled")?.lowercased() != "true" {
+        if value("enabled")?.lowercased() != "true" || value("auto_start")?.lowercased() != "true" {
             showError("The dashboard is disabled. Click Edit Config and set enabled = true and auto_start = true under [Web_Viewer], then restart the bot.")
             return
         }
-        var host = value("host") ?? "127.0.0.1"
-        if host == "0.0.0.0" { host = "127.0.0.1" }
-        let port = Int(value("port") ?? "") ?? 8080
-        NSWorkspace.shared.open(URL(string: "http://\(host):\(port)")!)
+        let configuredHost = value("host") ?? "127.0.0.1"
+        let host = configuredHost == "0.0.0.0" || configuredHost == "::" ? "127.0.0.1" : configuredHost
+        guard let port = Int(value("port") ?? "8080"), (1...65535).contains(port) else {
+            showError("Invalid dashboard port in [Web_Viewer]. Set port to a number from 1 to 65535.")
+            return
+        }
+        var components = URLComponents()
+        components.scheme = "http"
+        components.host = host
+        components.port = port
+        guard let url = components.url else {
+            showError("Invalid dashboard host in [Web_Viewer]. Check the host setting.")
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 
     /// Applies `transform` to the body of `[name]` in an INI string, up to the next section header.
