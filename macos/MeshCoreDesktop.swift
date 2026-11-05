@@ -156,6 +156,11 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             showError("Configuration is missing. Restore config.ini in the Bot Folder before starting.")
             return
         }
+        guard let configText = try? String(contentsOf: config, encoding: .utf8),
+              !configText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            showError("Configuration is empty or unreadable. Open the Bot Folder and repair config.ini.")
+            return
+        }
         guard FileManager.default.isExecutableFile(atPath: botExecutable.path) else {
             showError("Bundled bot executable is missing. Rebuild the macOS package.")
             return
