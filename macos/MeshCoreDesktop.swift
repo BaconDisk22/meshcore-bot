@@ -214,7 +214,17 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             showError("The dashboard starts with the bot. Click Start Bot first; if the radio can't connect, the bot and dashboard stop — check the log.")
             return
         }
-        let contents = (try? String(contentsOf: config, encoding: .utf8)) ?? ""
+        let contents: String
+        do {
+            contents = try String(contentsOf: config, encoding: .utf8)
+        } catch {
+            showError("Cannot read dashboard settings: \(error.localizedDescription)")
+            return
+        }
+        guard contents.contains("[Web_Viewer]") else {
+            showError("Missing [Web_Viewer] configuration section.")
+            return
+        }
         var section = ""
         _ = Self.editingSection("Web_Viewer", in: contents) { section = $0; return $0 }
         func value(_ key: String) -> String? {
