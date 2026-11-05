@@ -256,7 +256,9 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             return
         }
         let configuredHost = value("host") ?? "127.0.0.1"
-        let host = configuredHost == "0.0.0.0" || configuredHost == "::" ? "127.0.0.1" : configuredHost
+        // The desktop button should never navigate to a configured remote host.
+        // The local dashboard remains accessible through loopback even if it binds to all interfaces.
+        let host = "127.0.0.1"
         guard let port = Int(value("port") ?? "8080"), (1...65535).contains(port) else {
             showError("Invalid dashboard port in [Web_Viewer]. Set port to a number from 1 to 65535.")
             return
