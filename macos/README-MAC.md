@@ -46,3 +46,5 @@ Before merging or publishing, verify on the target Intel Tahoe Mac: first launch
 5. The app is ad-hoc signed and not notarized. The radio send/receive and reconnect paths require a real MeshCore companion radio before a stable release.
 
 Existing configuration is stored under `~/Library/Application Support/MeshCore Bot/config.ini`. Back it up before extensive edits.
+
+For reproducible bug reports and Activity Monitor troubleshooting, see [Intel Mac diagnostics](../docs/mac-diagnostics.md).
