@@ -341,10 +341,16 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         }
         do {
             let backup = home.appendingPathComponent("config.ini.bak")
-            if FileManager.default.fileExists(atPath: backup.path) {
-                try FileManager.default.removeItem(at: backup)
+            let stagedBackup = home.appendingPathComponent("config.ini.bak.pending")
+            if FileManager.default.fileExists(atPath: stagedBackup.path) {
+                try FileManager.default.removeItem(at: stagedBackup)
             }
-            try FileManager.default.copyItem(at: config, to: backup)
+            try FileManager.default.copyItem(at: config, to: stagedBackup)
+            if FileManager.default.fileExists(atPath: backup.path) {
+                _ = try FileManager.default.replaceItemAt(backup, withItemAt: stagedBackup)
+            } else {
+                try FileManager.default.moveItem(at: stagedBackup, to: backup)
+            }
             try updated.write(to: config, atomically: true, encoding: .utf8)
             appendLog("Configuration saved. Restart the bot to apply changes.\\n")
         } catch {
