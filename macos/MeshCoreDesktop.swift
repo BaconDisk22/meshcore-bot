@@ -279,10 +279,11 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
         }
         p.terminationHandler = { [weak self] terminated in
             DispatchQueue.main.async {
-                self?.status.stringValue = "Stopped (exit code \(terminated.terminationStatus))"
-                self?.logPipe?.fileHandleForReading.readabilityHandler = nil
-                self?.logPipe = nil
-                self?.process = nil
+                guard let self = self, self.process === terminated else { return }
+                self.status.stringValue = "Stopped (exit code \(terminated.terminationStatus))"
+                self.logPipe?.fileHandleForReading.readabilityHandler = nil
+                self.logPipe = nil
+                self.process = nil
             }
         }
         do {
