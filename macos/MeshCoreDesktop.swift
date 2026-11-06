@@ -335,7 +335,8 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
             showError("Configuration cannot be empty. No changes were saved.")
             return
         }
-        guard updated.contains("[Connection]") && updated.contains("[Bot]") else {
+        let sectionHeaders = Set(updated.split(whereSeparator: \.isNewline).map { $0.trimmingCharacters(in: .whitespaces) }.filter { $0.hasPrefix("[") && $0.hasSuffix("]") })
+        guard sectionHeaders.contains("[Connection]") && sectionHeaders.contains("[Bot]") else {
             showError("Configuration must include [Connection] and [Bot] sections. No changes saved.")
             return
         }
