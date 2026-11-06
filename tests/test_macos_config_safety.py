@@ -11,8 +11,9 @@ def test_config_is_not_overwritten_without_changes():
 
 def test_empty_and_missing_required_sections_rejected():
     assert "trimmingCharacters(in: .whitespacesAndNewlines).isEmpty" in EDITOR
-    assert 'updated.contains("[Connection]")' in EDITOR
-    assert 'updated.contains("[Bot]")' in EDITOR
+    assert "let sectionHeaders = Set(" in EDITOR
+    assert 'sectionHeaders.contains("[Connection]")' in EDITOR
+    assert 'sectionHeaders.contains("[Bot]")' in EDITOR
 
 
 def test_backup_created_before_atomic_write():
