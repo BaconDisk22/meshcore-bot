@@ -222,7 +222,7 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
     private func appendLog(_ s: String) {
         DispatchQueue.main.async {
             self.output.textStorage?.append(NSAttributedString(string: s, attributes: [.foregroundColor: self.output.textColor ?? NSColor.white, .font: self.output.font ?? NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)]))
-            self.output.scrollToEndOfDocument(nil)
+            // Keep the latest 250,000 UTF-16 code units to avoid runaway memory use.\n            if let storage = self.output.textStorage, storage.length > 250_000 {\n                storage.deleteCharacters(in: NSRange(location: 0, length: storage.length - 250_000))\n            }\n            self.output.scrollToEndOfDocument(nil)
         }
     }
 
