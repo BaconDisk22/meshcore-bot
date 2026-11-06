@@ -50,3 +50,5 @@ Existing configuration is stored under `~/Library/Application Support/MeshCore B
 For reproducible bug reports and Activity Monitor troubleshooting, see [Intel Mac diagnostics](../docs/mac-diagnostics.md).
 
 For the release candidate hardware checklist, see [Intel Mac verification matrix](../docs/mac-release-test-matrix.md).
+
+If a configuration edit causes startup issues, follow the [configuration recovery guide](../docs/mac-config-recovery.md).
