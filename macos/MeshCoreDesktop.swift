@@ -352,7 +352,7 @@ final class MeshCoreDesktop: NSObject, NSApplicationDelegate {
                 try FileManager.default.moveItem(at: stagedBackup, to: backup)
             }
             try updated.write(to: config, atomically: true, encoding: .utf8)
-            appendLog("Configuration saved. Restart the bot to apply changes.\\n")
+            appendLog("Configuration saved. Restart the bot to apply changes.\n")
         } catch {
             showError("Could not save config.ini: \(error.localizedDescription)")
         }
