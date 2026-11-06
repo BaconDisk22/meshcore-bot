@@ -48,3 +48,5 @@ Before merging or publishing, verify on the target Intel Tahoe Mac: first launch
 Existing configuration is stored under `~/Library/Application Support/MeshCore Bot/config.ini`. Back it up before extensive edits.
 
 For reproducible bug reports and Activity Monitor troubleshooting, see [Intel Mac diagnostics](../docs/mac-diagnostics.md).
+
+For the release candidate hardware checklist, see [Intel Mac verification matrix](../docs/mac-release-test-matrix.md).
