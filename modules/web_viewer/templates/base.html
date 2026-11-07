@@ -14,7 +14,7 @@
         (function () {
             // Follow the system appearance until the user picks a theme with the toggle.
             let storedTheme = null;
-            try { storedTheme = localStorage.getItem('theme'); } catch (e) { }
+            try { storedTheme = localStorage.getItem('theme'); } catch { /* storage blocked */ }
             const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             const theme = storedTheme || systemTheme;
             document.documentElement.setAttribute('data-theme', theme);
@@ -877,7 +877,7 @@
             }
 
             getStoredTheme() {
-                try { return localStorage.getItem('theme'); } catch (e) { return null; }
+                try { return localStorage.getItem('theme'); } catch { return null; }
             }
 
             getSystemPreference() {
@@ -886,7 +886,7 @@
 
             setTheme(theme) {
                 this.theme = theme;
-                try { localStorage.setItem('theme', theme); } catch (e) { }
+                try { localStorage.setItem('theme', theme); } catch { /* storage blocked */ }
                 this.applyTheme();
             }
 
