@@ -1,6 +1,7 @@
 """Compile the Intel Mac app and exercise its INI helpers when a Swift toolchain is present."""
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -33,7 +34,9 @@ print("ini helpers ok")
 
 
 pytestmark = [
-    pytest.mark.skipif(shutil.which("swiftc") is None, reason="Swift toolchain not available"),
+    # Needs the macOS SDK (AppKit); Linux runners may have swiftc without it.
+    pytest.mark.skipif(sys.platform != "darwin" or shutil.which("swiftc") is None,
+                       reason="macOS Swift toolchain not available"),
     # Optimised Swift builds of the whole app take longer than the suite-wide default.
     pytest.mark.timeout(900),
 ]
